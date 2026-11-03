@@ -33,10 +33,10 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Extract ES News Studio project
+      - name: Extract ES News project
         run: |
           mkdir source
-          unzip -q AI_News_Anchor_ES_News_Studio_v3.zip -d source
+          unzip -q AI_News_Anchor_ES_News_Studio_v3-1.zip -d source
 
       - name: Configure Java and Kotlin
         run: |
@@ -54,8 +54,8 @@ jobs:
                   applicationId = "com.aivideostudio.mobile"
                   minSdk = 26
                   targetSdk = 35
-                  versionCode = 3
-                  versionName = "3.0"
+                  versionCode = 4
+                  versionName = "4.0"
               }
 
               compileOptions {
