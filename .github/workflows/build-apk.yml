@@ -1,5 +1,5 @@
 
-name: Build AI Video Studio APK
+name: Build ES News AI Anchor APK
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: Build Android APK
+    name: Build ES News Studio APK
     runs-on: ubuntu-latest
 
     steps:
@@ -33,10 +33,10 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Extract AI News Anchor project
+      - name: Extract ES News Studio project
         run: |
           mkdir source
-          unzip -q AI_News_Anchor_Demo_v2.zip -d source
+          unzip -q AI_News_Anchor_ES_News_Studio_v3.zip -d source
 
       - name: Configure Java and Kotlin
         run: |
@@ -54,8 +54,8 @@ jobs:
                   applicationId = "com.aivideostudio.mobile"
                   minSdk = 26
                   targetSdk = 35
-                  versionCode = 2
-                  versionName = "2.0"
+                  versionCode = 3
+                  versionName = "3.0"
               }
 
               compileOptions {
@@ -75,5 +75,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: AI-News-Anchor-APK
+          name: ES-News-Studio-APK
           path: source/app/build/outputs/apk/debug/app-debug.apk
