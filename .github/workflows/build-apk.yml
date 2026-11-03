@@ -1,4 +1,4 @@
-name: Build ES NEWS 3D Anchor APK
+name: Build ES NEWS 3D Anchor v10
 
 on:
   push:
@@ -32,10 +32,10 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Extract ES NEWS v9 project
+      - name: Extract ES NEWS v10 project
         run: |
           mkdir source
-          unzip -q ES_News_Talking_Anchor_v9-2.zip -d source
+          unzip -q ES_News_Talking_Anchor_v10.zip -d source
 
       - name: Build APK
         run: gradle --no-daemon -p source :app:assembleDebug
@@ -43,5 +43,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: ES-NEWS-3D-Anchor-v9
+          name: ES-NEWS-3D-Anchor-v10
           path: source/app/build/outputs/apk/debug/app-debug.apk
