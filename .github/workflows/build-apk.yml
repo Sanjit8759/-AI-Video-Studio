@@ -1,5 +1,5 @@
 
-name: Build ES News Talking Anchor APK
+name: Build ES News Talking Anchor v6
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: Build ES News Talking Anchor
+    name: Build ES News Studio APK
     runs-on: ubuntu-latest
 
     steps:
@@ -33,10 +33,10 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Extract v4 project
+      - name: Extract v6 project
         run: |
           mkdir source
-          unzip -q ES_News_Talking_Anchor_v4.zip -d source
+          unzip -q ES_News_Talking_Anchor_v6.zip -d source
 
       - name: Build APK
         run: gradle --no-daemon -p source :app:assembleDebug
@@ -44,5 +44,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: ES-News-Talking-Anchor-v4
+          name: ES-News-Talking-Anchor-v6
           path: source/app/build/outputs/apk/debug/app-debug.apk
