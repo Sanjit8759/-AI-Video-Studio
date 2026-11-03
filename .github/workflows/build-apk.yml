@@ -1,5 +1,5 @@
 
-name: Build ES News Talking Anchor v6
+name: Build ES News AI Anchor v7 APK
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: Build ES News Studio APK
+    name: Build Android APK
     runs-on: ubuntu-latest
 
     steps:
@@ -33,16 +33,18 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Extract v6 project
+      - name: Extract v7 project
         run: |
           mkdir source
-          unzip -q ES_News_Talking_Anchor_v6.zip -d source
+          unzip -q ES_News_Talking_Anchor_v7.zip -d source
 
       - name: Build APK
-        run: gradle --no-daemon -p source :app:assembleDebug
+        run: |
+          gradle --no-daemon -p source :app:assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: ES-News-Talking-Anchor-v6
+          name: ES-News-Talking-Anchor-v7-APK
           path: source/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
