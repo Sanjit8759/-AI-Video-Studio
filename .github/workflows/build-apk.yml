@@ -1,5 +1,5 @@
 
-name: Build ES News AI Anchor APK
+name: Build ES News Talking Anchor APK
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: Build ES News Studio APK
+    name: Build ES News Talking Anchor
     runs-on: ubuntu-latest
 
     steps:
@@ -33,41 +33,10 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Extract ES News project
+      - name: Extract v4 project
         run: |
           mkdir source
-          unzip -q AI_News_Anchor_ES_News_Studio_v3-1.zip -d source
-
-      - name: Configure Java and Kotlin
-        run: |
-          cat > source/app/build.gradle.kts <<'EOF'
-          plugins {
-              id("com.android.application")
-              id("org.jetbrains.kotlin.android")
-          }
-
-          android {
-              namespace = "com.aivideostudio.mobile"
-              compileSdk = 35
-
-              defaultConfig {
-                  applicationId = "com.aivideostudio.mobile"
-                  minSdk = 26
-                  targetSdk = 35
-                  versionCode = 4
-                  versionName = "4.0"
-              }
-
-              compileOptions {
-                  sourceCompatibility = JavaVersion.VERSION_17
-                  targetCompatibility = JavaVersion.VERSION_17
-              }
-
-              kotlinOptions {
-                  jvmTarget = "17"
-              }
-          }
-          EOF
+          unzip -q ES_News_Talking_Anchor_v4.zip -d source
 
       - name: Build APK
         run: gradle --no-daemon -p source :app:assembleDebug
@@ -75,5 +44,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: ES-News-Studio-APK
+          name: ES-News-Talking-Anchor-v4
           path: source/app/build/outputs/apk/debug/app-debug.apk
