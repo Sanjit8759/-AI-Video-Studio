@@ -35,7 +35,7 @@ jobs:
       - name: Extract ES NEWS v9 project
         run: |
           mkdir source
-          unzip -q ES_News_Talking_Anchor_v9.zip -d source
+          unzip -q ES_News_Talking_Anchor_v9-2.zip -d source
 
       - name: Build APK
         run: gradle --no-daemon -p source :app:assembleDebug
