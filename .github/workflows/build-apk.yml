@@ -21,14 +21,24 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Install Android SDK packages
+      - name: Locate Android SDK Manager
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME"
-          yes | sdkmanager --sdk_root="$ANDROID_HOME" --licenses
-          sdkmanager --sdk_root="$ANDROID_HOME" --install \
+          SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)
+          if [ -z "$SDKMANAGER" ]; then
+            echo "ERROR: sdkmanager not found"
+            exit 1
+          fi
+          echo "SDKMANAGER=$SDKMANAGER" >> $GITHUB_ENV
+          chmod +x "$SDKMANAGER"
+
+      - name: Install Android SDK packages
+        run: |
+          yes | "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --licenses || true
+          "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --install \
             "platforms;android-35" \
             "build-tools;35.0.0"
-      
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
