@@ -15,31 +15,36 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Java
+      - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
       - name: Locate Android SDK Manager
+        shell: bash
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME"
+
           SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)
+
           if [ -z "$SDKMANAGER" ]; then
             echo "ERROR: sdkmanager not found"
             exit 1
           fi
-          echo "SDKMANAGER=$SDKMANAGER" >> $GITHUB_ENV
-          chmod +x "$SDKMANAGER"
+
+          echo "SDKMANAGER=$SDKMANAGER" >> "$GITHUB_ENV"
 
       - name: Install Android SDK packages
+        shell: bash
         run: |
-          yes | "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --licenses || true
-          "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --install \
+          yes | bash "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --licenses || true
+
+          bash "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --install \
             "platforms;android-35" \
             "build-tools;35.0.0"
 
-      - name: Setup Gradle
+      - name: Setup Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
@@ -49,11 +54,12 @@ jobs:
           mkdir source
           unzip -q ES_News_Talking_Anchor_v13_2_GitHub_Avatar.zip -d source
 
-      - name: Check project files
+      - name: Check Android project files
         run: |
           test -f source/settings.gradle.kts
           test -f source/build.gradle.kts
           test -f source/app/build.gradle.kts
+          echo "Android project files found"
 
       - name: Build APK
         run: |
