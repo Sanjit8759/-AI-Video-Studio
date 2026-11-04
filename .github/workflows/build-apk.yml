@@ -15,23 +15,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Java 17
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Install Android SDK packages
         run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          yes | sdkmanager --sdk_root="$ANDROID_HOME" --licenses
           sdkmanager --sdk_root="$ANDROID_HOME" --install \
-            "platform-tools" \
             "platforms;android-35" \
             "build-tools;35.0.0"
-
-      - name: Setup Gradle 8.9
+      
+      - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
@@ -46,7 +44,6 @@ jobs:
           test -f source/settings.gradle.kts
           test -f source/build.gradle.kts
           test -f source/app/build.gradle.kts
-          echo "Android project files found"
 
       - name: Build APK
         run: |
