@@ -1,5 +1,4 @@
-
-name: Build AI ANCHOR SANJIT v14.2
+name: Build AI ANCHOR SANJIT V14
 
 on:
   workflow_dispatch:
@@ -24,65 +23,85 @@ jobs:
       - name: Locate Android SDK Manager
         shell: bash
         run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
           SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)
+
           if [ -z "$SDKMANAGER" ]; then
-            echo "SDK manager not found"
+            echo "ERROR: sdkmanager not found"
             exit 1
           fi
+
           echo "SDKMANAGER=$SDKMANAGER" >> "$GITHUB_ENV"
 
-      - name: Install Android SDK
+      - name: Install Android SDK packages
         shell: bash
         run: |
           yes | bash "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --licenses || true
+
           bash "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --install \
             "platforms;android-35" \
             "build-tools;35.0.0"
 
-      - name: Setup Gradle
+      - name: Setup Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
-      - name: Extract project ZIP
+      - name: Extract Android project
+        shell: bash
         run: |
           mkdir -p source
           unzip -q AI_ANCHOR_SANJIT_v14_fixed.zip -d source
-          echo "ZIP extracted"
-          find source -maxdepth 4 -type f | head -100
 
-      - name: Find Android project folder
+      - name: Find Android project
         shell: bash
         run: |
-          SETTINGS=$(find source -type f \( -name settings.gradle.kts -o -name settings.gradle \) -print -quit)
-          if [ -z "$SETTINGS" ]; then
-            echo "ERROR: No Gradle settings file found in ZIP"
+          PROJECT_FILE=$(find source -type f -name settings.gradle.kts | head -n 1)
+
+          if [ -z "$PROJECT_FILE" ]; then
+            echo "ERROR: settings.gradle.kts not found in ZIP"
+            find source -maxdepth 4 -type f
             exit 1
           fi
-          PROJECT_ROOT=$(dirname "$SETTINGS")
-          echo "PROJECT_ROOT=$PROJECT_ROOT" >> "$GITHUB_ENV"
-          echo "Android project found at: $PROJECT_ROOT"
 
-      - name: Add standing anchor video
-        run: |
-          mkdir -p "$PROJECT_ROOT/app/src/main/assets/videos"
-          cp VID-20261105-WA0039.mp4 "$PROJECT_ROOT/app/src/main/assets/videos/standing_anchor.mp4"
-          ls -lh "$PROJECT_ROOT/app/src/main/assets/videos/"
+          PROJECT_DIR=$(dirname "$PROJECT_FILE")
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
 
-      - name: Check Android files
+          echo "Android project found: $PROJECT_DIR"
+
+      - name: Add anchor video
+        shell: bash
         run: |
-          test -f "$PROJECT_ROOT/build.gradle.kts" || test -f "$PROJECT_ROOT/build.gradle"
-          test -f "$PROJECT_ROOT/app/build.gradle.kts" || test -f "$PROJECT_ROOT/app/build.gradle"
-          test -f "$PROJECT_ROOT/app/src/main/AndroidManifest.xml"
-          echo "Android files found"
+          mkdir -p "$PROJECT_DIR/app/src/main/assets/videos"
+
+          cp VID-20261105-WA0039.mp4 \
+            "$PROJECT_DIR/app/src/main/assets/videos/standing_anchor.mp4"
+
+          test -f "$PROJECT_DIR/app/src/main/assets/videos/standing_anchor.mp4"
+
+          echo "Anchor video added successfully"
+
+      - name: Check project files
+        shell: bash
+        run: |
+          test -f "$PROJECT_DIR/settings.gradle.kts"
+          test -f "$PROJECT_DIR/build.gradle.kts"
+          test -f "$PROJECT_DIR/app/build.gradle.kts"
+          test -f "$PROJECT_DIR/app/src/main/AndroidManifest.xml"
+
+          echo "All required files found"
 
       - name: Build APK
+        shell: bash
         run: |
-          gradle -p "$PROJECT_ROOT" :app:assembleDebug
+          gradle -p "$PROJECT_DIR" :app:assembleDebug
+
+          cp "$PROJECT_DIR/app/build/outputs/apk/debug/app-debug.apk" \
+            "$GITHUB_WORKSPACE/ES-NEWS-ANCHOR-V14.apk"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: AI-ANCHOR-SANJIT-v14.2
-          path: ${{ env.PROJECT_ROOT }}/app/build/outputs/apk/debug/app-debug.apk
+          name: ES-NEWS-ANCHOR-V14
+          path: ES-NEWS-ANCHOR-V14.apk
           if-no-files-found: error
