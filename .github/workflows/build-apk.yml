@@ -1,5 +1,5 @@
 
-name: Build ES NEWS v13.2 APK
+name: Build ES NEWS APK with Anchor Video
 
 on:
   workflow_dispatch:
@@ -25,21 +25,17 @@ jobs:
         shell: bash
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME"
-
           SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)
-
           if [ -z "$SDKMANAGER" ]; then
             echo "ERROR: sdkmanager not found"
             exit 1
           fi
-
           echo "SDKMANAGER=$SDKMANAGER" >> "$GITHUB_ENV"
 
       - name: Install Android SDK packages
         shell: bash
         run: |
           yes | bash "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --licenses || true
-
           bash "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --install \
             "platforms;android-35" \
             "build-tools;35.0.0"
@@ -54,12 +50,19 @@ jobs:
           mkdir source
           unzip -q ES_News_Talking_Anchor_v13_2_GitHub_Avatar.zip -d source
 
+      - name: Add ES NEWS standing anchor video
+        run: |
+          mkdir -p source/app/src/main/assets/videos
+          cp VID-20261105-WA0039.mp4 source/app/src/main/assets/videos/standing_anchor.mp4
+          ls -lh source/app/src/main/assets/videos/
+
       - name: Check Android project files
         run: |
           test -f source/settings.gradle.kts
           test -f source/build.gradle.kts
           test -f source/app/build.gradle.kts
-          echo "Android project files found"
+          test -f source/app/src/main/assets/videos/standing_anchor.mp4
+          echo "Android project and anchor video found"
 
       - name: Build APK
         run: |
@@ -68,6 +71,6 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: ES-NEWS-v13.2-APK
+          name: ES-NEWS-APK-with-Anchor
           path: source/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
