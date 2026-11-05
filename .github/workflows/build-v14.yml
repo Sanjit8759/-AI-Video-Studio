@@ -44,26 +44,17 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Extract project
+      - name: Extract Android project
         run: |
           mkdir -p source
           unzip -q AI_ANCHOR_SANJIT_v14_fixed.zip -d source
+          ls -la source
 
       - name: Add standing anchor video
         run: |
           mkdir -p source/app/src/main/assets/videos
           cp VID-20261105-WA0039.mp4 source/app/src/main/assets/videos/standing_anchor.mp4
           ls -lh source/app/src/main/assets/videos/
-
-      - name: Check project files
-        run: |
-          test -f source/settings.gradle.kts
-          test -f source/build.gradle.kts
-          test -f source/app/build.gradle.kts
-          test -f source/app/src/main/AndroidManifest.xml
-          test -f source/app/src/main/java/com/aianchorsanjit/app/MainActivity.kt
-          test -f source/app/src/main/assets/videos/standing_anchor.mp4
-          echo "All required files found"
 
       - name: Build APK
         run: |
