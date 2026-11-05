@@ -24,7 +24,6 @@ jobs:
       - name: Locate Android SDK Manager
         shell: bash
         run: |
-          echo "ANDROID_HOME=$ANDROID_HOME"
           SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)
           if [ -z "$SDKMANAGER" ]; then
             echo "ERROR: sdkmanager not found"
@@ -47,7 +46,7 @@ jobs:
 
       - name: Extract project
         run: |
-          mkdir source
+          mkdir -p source
           unzip -q AI_ANCHOR_SANJIT_v14_fixed.zip -d source
 
       - name: Add standing anchor video
@@ -59,9 +58,12 @@ jobs:
       - name: Check project files
         run: |
           test -f source/settings.gradle.kts
+          test -f source/build.gradle.kts
           test -f source/app/build.gradle.kts
+          test -f source/app/src/main/AndroidManifest.xml
+          test -f source/app/src/main/java/com/aianchorsanjit/app/MainActivity.kt
           test -f source/app/src/main/assets/videos/standing_anchor.mp4
-          echo "Project and video found"
+          echo "All required files found"
 
       - name: Build APK
         run: |
