@@ -1,4 +1,5 @@
-name: Build AI ANCHOR SANJIT V14
+
+name: Build ES NEWS v14 Video Fix
 
 on:
   workflow_dispatch:
@@ -25,27 +26,29 @@ jobs:
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME"
           SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)
-
           if [ -z "$SDKMANAGER" ]; then
             echo "ERROR: sdkmanager not found"
             exit 1
           fi
-
           echo "SDKMANAGER=$SDKMANAGER" >> "$GITHUB_ENV"
 
       - name: Install Android SDK packages
         shell: bash
         run: |
           yes | bash "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --licenses || true
-
           bash "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --install \
             "platforms;android-35" \
             "build-tools;35.0.0"
 
-      - name: Setup Gradle 8.9
+      - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
 
       - name: Extract Android project
         shell: bash
@@ -53,9 +56,6 @@ jobs:
           mkdir -p source
           unzip -q AI_ANCHOR_SANJIT_v14_fixed.zip -d source
 
-      - name: Find Android project
-        shell: bash
-        run: |
           PROJECT_FILE=$(find source -type f -name settings.gradle.kts | head -n 1)
 
           if [ -z "$PROJECT_FILE" ]; then
@@ -66,42 +66,50 @@ jobs:
 
           PROJECT_DIR=$(dirname "$PROJECT_FILE")
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
-
           echo "Android project found: $PROJECT_DIR"
 
-      - name: Add anchor video
+      - name: Add and convert anchor video
         shell: bash
         run: |
-          mkdir -p "$PROJECT_DIR/app/src/main/assets/videos"
+          VIDEO_DIR="$PROJECT_DIR/app/src/main/assets/videos"
+          mkdir -p "$VIDEO_DIR"
 
-          cp VID-20261105-WA0039.mp4 \
-            "$PROJECT_DIR/app/src/main/assets/videos/standing_anchor.mp4"
+          ffmpeg -y \
+            -i VID-20261105-WA0039.mp4 \
+            -map 0:v:0 -map '0:a?' \
+            -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" \
+            -c:v libx264 \
+            -preset veryfast \
+            -crf 23 \
+            -pix_fmt yuv420p \
+            -profile:v baseline \
+            -level 3.0 \
+            -c:a aac \
+            -b:a 128k \
+            -ar 44100 \
+            -movflags +faststart \
+            "$VIDEO_DIR/standing_anchor.mp4"
 
-          test -f "$PROJECT_DIR/app/src/main/assets/videos/standing_anchor.mp4"
-
-          echo "Anchor video added successfully"
+          ls -lh "$VIDEO_DIR/standing_anchor.mp4"
 
       - name: Check project files
         shell: bash
         run: |
           test -f "$PROJECT_DIR/settings.gradle.kts"
-          test -f "$PROJECT_DIR/build.gradle.kts"
           test -f "$PROJECT_DIR/app/build.gradle.kts"
           test -f "$PROJECT_DIR/app/src/main/AndroidManifest.xml"
-
+          test -f "$PROJECT_DIR/app/src/main/assets/videos/standing_anchor.mp4"
           echo "All required files found"
 
       - name: Build APK
         shell: bash
         run: |
           gradle -p "$PROJECT_DIR" :app:assembleDebug
-
-          cp "$PROJECT_DIR/app/build/outputs/apk/debug/app-debug.apk" \
-            "$GITHUB_WORKSPACE/ES-NEWS-ANCHOR-V14.apk"
+          cp "$PROJECT_DIR/app/build/outputs/apk/debug/app-debug.apk" ES-NEWS-v14.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: ES-NEWS-ANCHOR-V14
-          path: ES-NEWS-ANCHOR-V14.apk
+          name: ES-NEWS-v14-APK
+          path: ES-NEWS-v14.apk
           if-no-files-found: error
