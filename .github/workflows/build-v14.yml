@@ -1,5 +1,5 @@
 
-name: Build AI ANCHOR SANJIT v14.1
+name: Build AI ANCHOR SANJIT v14.2
 
 on:
   workflow_dispatch:
@@ -26,12 +26,12 @@ jobs:
         run: |
           SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)
           if [ -z "$SDKMANAGER" ]; then
-            echo "ERROR: sdkmanager not found"
+            echo "SDK manager not found"
             exit 1
           fi
           echo "SDKMANAGER=$SDKMANAGER" >> "$GITHUB_ENV"
 
-      - name: Install Android SDK packages
+      - name: Install Android SDK
         shell: bash
         run: |
           yes | bash "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --licenses || true
@@ -39,30 +39,50 @@ jobs:
             "platforms;android-35" \
             "build-tools;35.0.0"
 
-      - name: Setup Gradle 8.9
+      - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
-      - name: Extract Android project
+      - name: Extract project ZIP
         run: |
           mkdir -p source
           unzip -q AI_ANCHOR_SANJIT_v14_fixed.zip -d source
-          ls -la source
+          echo "ZIP extracted"
+          find source -maxdepth 4 -type f | head -100
+
+      - name: Find Android project folder
+        shell: bash
+        run: |
+          SETTINGS=$(find source -type f \( -name settings.gradle.kts -o -name settings.gradle \) -print -quit)
+          if [ -z "$SETTINGS" ]; then
+            echo "ERROR: No Gradle settings file found in ZIP"
+            exit 1
+          fi
+          PROJECT_ROOT=$(dirname "$SETTINGS")
+          echo "PROJECT_ROOT=$PROJECT_ROOT" >> "$GITHUB_ENV"
+          echo "Android project found at: $PROJECT_ROOT"
 
       - name: Add standing anchor video
         run: |
-          mkdir -p source/app/src/main/assets/videos
-          cp VID-20261105-WA0039.mp4 source/app/src/main/assets/videos/standing_anchor.mp4
-          ls -lh source/app/src/main/assets/videos/
+          mkdir -p "$PROJECT_ROOT/app/src/main/assets/videos"
+          cp VID-20261105-WA0039.mp4 "$PROJECT_ROOT/app/src/main/assets/videos/standing_anchor.mp4"
+          ls -lh "$PROJECT_ROOT/app/src/main/assets/videos/"
+
+      - name: Check Android files
+        run: |
+          test -f "$PROJECT_ROOT/build.gradle.kts" || test -f "$PROJECT_ROOT/build.gradle"
+          test -f "$PROJECT_ROOT/app/build.gradle.kts" || test -f "$PROJECT_ROOT/app/build.gradle"
+          test -f "$PROJECT_ROOT/app/src/main/AndroidManifest.xml"
+          echo "Android files found"
 
       - name: Build APK
         run: |
-          gradle -p source :app:assembleDebug
+          gradle -p "$PROJECT_ROOT" :app:assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: AI-ANCHOR-SANJIT-v14.1
-          path: source/app/build/outputs/apk/debug/app-debug.apk
+          name: AI-ANCHOR-SANJIT-v14.2
+          path: ${{ env.PROJECT_ROOT }}/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
