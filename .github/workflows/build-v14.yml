@@ -1,4 +1,5 @@
-name: Build AI ANCHOR SANJIT v14
+
+name: Build AI ANCHOR SANJIT v14.1
 
 on:
   workflow_dispatch:
@@ -11,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Java 17
@@ -47,19 +48,28 @@ jobs:
       - name: Extract project
         run: |
           mkdir source
-          unzip -q AI_ANCHOR_SANJIT_v14_project.zip -d source
+          unzip -q AI_ANCHOR_SANJIT_v14_fixed.zip -d source
 
-      - name: Add anchor video
+      - name: Add standing anchor video
         run: |
-          mkdir -p source/AI_ANCHOR_SANJIT_v14/app/src/main/assets/videos
-          cp VID-20261105-WA0039.mp4 source/AI_ANCHOR_SANJIT_v14/app/src/main/assets/videos/standing_anchor.mp4
+          mkdir -p source/app/src/main/assets/videos
+          cp VID-20261105-WA0039.mp4 source/app/src/main/assets/videos/standing_anchor.mp4
+          ls -lh source/app/src/main/assets/videos/
+
+      - name: Check project files
+        run: |
+          test -f source/settings.gradle.kts
+          test -f source/app/build.gradle.kts
+          test -f source/app/src/main/assets/videos/standing_anchor.mp4
+          echo "Project and video found"
 
       - name: Build APK
         run: |
-          gradle -p source/AI_ANCHOR_SANJIT_v14 :app:assembleDebug
+          gradle -p source :app:assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: AI-ANCHOR-SANJIT-v14
-          path: source/AI_ANCHOR_SANJIT_v14/app/build/outputs/apk/debug/app-debug.apk
+          name: AI-ANCHOR-SANJIT-v14.1
+          path: source/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
